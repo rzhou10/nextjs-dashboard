@@ -14,6 +14,7 @@ export default async function Page() {
         Dashboard
       </h1>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Suspense defers rendering until a condition is met. Pass a fallback component to render until the condition is met */}
         <Suspense fallback={<CardsSkeleton />}>
           <CardWrapper />
         </Suspense>
