@@ -16,6 +16,15 @@ export type State = {
   message?: string | null;
 };
 
+export type CustomerState = {
+  errors?: {
+    customerName?: string[];
+    email?: string[];
+    image?: string[];
+  };
+  message?: string | null;
+};
+
 // validate form before sending to database
 const FormSchema = z.object({
   id: z.string(),
@@ -150,7 +159,7 @@ export async function authenticate(
 }
 
 
-export async function createCustomer(prevState: State, formData: FormData) {
+export async function createCustomer(prevState: CustomerState, formData: FormData) {
   // Validate form using Zod
   const validatedFields = CreateCustomer.safeParse({
     customerName: formData.get('customerName'),

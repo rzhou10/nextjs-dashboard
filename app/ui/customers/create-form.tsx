@@ -36,8 +36,8 @@ export default function Form() {
             </div>
             {/* aria-live is for screenreaders to notify when the div is updated */}
             <div id="customer-error" aria-live="polite" aria-atomic="true">
-              {state.errors?.customerId &&
-                state.errors.customerId.map((error: string) => (
+              {state.errors?.customerName &&
+                state.errors.customerName.map((error: string) => (
                   <p className="mt-2 text-sm text-red-500" key={error}>
                     {error}
                   </p>
