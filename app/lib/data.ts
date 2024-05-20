@@ -193,6 +193,25 @@ export async function fetchCustomers() {
   }
 }
 
+export async function fetchCustomersPages(query : string) {
+  noStore();
+  try {
+    const count = await sql`
+      SELECT COUNT(*)
+      FROM customers
+      WHERE
+        customers.name ILIKE ${`%${query}%`} OR
+        customers.email ILIKE ${`%${query}%`}
+    `;
+
+    const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (err) {
+    console.error('Database Error:', err);
+    throw new Error('Failed to fetch customers by page.');
+  }
+}
+
 export async function fetchFilteredCustomers(query: string) {
   noStore();
   try {

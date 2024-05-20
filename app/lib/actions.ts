@@ -16,7 +16,7 @@ export type State = {
   message?: string | null;
 };
 
-// validate form before sending to
+// validate form before sending to database
 const FormSchema = z.object({
   id: z.string(),
   customerId: z.string({
@@ -29,7 +29,17 @@ const FormSchema = z.object({
   date: z.string(),
 });
 
+const FormSchemaCustomer = z.object({
+  customerName: z.string({
+    invalid_type_error: 'Please insert a name.'
+  }),
+  email: z.string().regex(/^[\w\-\.]+@([\w-]+\.)+[\w-]{2,}$/gm),
+  image: z.string()
+});
+
 const CreateInvoice = FormSchema.omit({ id: true, date: true });
+
+const CreateCustomer = FormSchemaCustomer;
 
 export async function createInvoice(prevState: State, formData: FormData) {
   // Validate form using Zod
@@ -83,17 +93,17 @@ export async function updateInvoice(
     amount: formData.get('amount'),
     status: formData.get('status'),
   });
- 
+
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
       message: 'Missing Fields. Failed to Update Invoice.',
     };
   }
- 
+
   const { customerId, amount, status } = validatedFields.data;
   const amountInCents = amount * 100;
- 
+
   try {
     await sql`
       UPDATE invoices
@@ -103,7 +113,7 @@ export async function updateInvoice(
   } catch (error) {
     return { message: 'Database Error: Failed to Update Invoice.' };
   }
- 
+
   revalidatePath('/dashboard/invoices');
   redirect('/dashboard/invoices');
 }
@@ -137,4 +147,55 @@ export async function authenticate(
     }
     throw error;
   }
+}
+
+
+export async function createCustomer(prevState: State, formData: FormData) {
+  // Validate form using Zod
+  const validatedFields = CreateCustomer.safeParse({
+    customerName: formData.get('customerName'),
+    email: formData.get('email'),
+    image: formData.get('image'),
+  });
+
+  // If form validation fails, return errors early. Otherwise, continue.
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'Missing Fields. Failed to Create Customer.',
+    };
+  }
+
+  // Prepare data for insertion into the database
+  const { email, image, customerName } = validatedFields.data;
+  const date = new Date().toISOString().split('T')[0];
+
+  // Insert data into the database
+  try {
+    await sql`
+      INSERT INTO customers (name, image_url, email)
+      VALUES (${customerName},  ${image}, ${email})
+    `;
+  } catch (error) {
+    // If a database error occurs, return a more specific error.
+    console.log(error)
+    return {
+      message: 'Database Error: Failed to Create Customer.',
+    };
+  }
+
+  // Revalidate the cache for the invoices page and redirect the user.
+  revalidatePath('/dashboard/customers');
+  redirect('/dashboard/customers');
+}
+
+export async function updateCustomer(
+  id: string,
+  prevState: State,
+  formData: FormData) {
+  //
+}
+
+export async function deleteCustomer(id: string) {
+
 }
